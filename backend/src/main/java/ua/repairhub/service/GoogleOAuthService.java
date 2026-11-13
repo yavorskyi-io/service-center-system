@@ -115,6 +115,10 @@ public class GoogleOAuthService {
             }
 
             return new GoogleUserInfo(sub, email, verified, name);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Google OAuth API call interrupted", e);
+            throw new BadRequestException("Перервано з'єднання з сервісом Google OAuth");
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {

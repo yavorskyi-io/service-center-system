@@ -22,10 +22,14 @@ import {
   LogOut,
   KeyRound,
   ClipboardList,
-  LifeBuoy
+  LifeBuoy,
+  Send,
+  ChevronDown
 } from 'lucide-react';
 import type { Order, OrderStatus, AuthUser } from '../types';
 import { api } from '../services/api';
+import { translations, type Language } from '../utils/translations';
+import { Logo } from './Logo';
 
 interface ClientPortalProps {
   currentUser?: AuthUser | null;
@@ -38,15 +42,6 @@ interface ClientPortalProps {
   onLogout?: () => void;
 }
 
-const statusWorkflow: { key: OrderStatus; label: string; desc: string }[] = [
-  { key: 'NEW', label: 'Прийом', desc: 'Зареєстровано в системі' },
-  { key: 'IN_DIAGNOSTICS', label: 'Діагностика', desc: 'Визначення несправності' },
-  { key: 'PENDING_APPROVAL', label: 'Узгодження', desc: 'Погодження кошторису' },
-  { key: 'IN_PROGRESS', label: 'Ремонт', desc: 'Виконання робіт' },
-  { key: 'READY_FOR_PICKUP', label: 'Готово', desc: 'Очікує видачі' },
-  { key: 'COMPLETED', label: 'Видано', desc: 'Отримано клієнтом' },
-];
-
 export const ClientPortal: React.FC<ClientPortalProps> = ({
   currentUser,
   myOrders = [],
@@ -57,6 +52,29 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   onOpenSupport,
   onLogout
 }) => {
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('repairhub_lang') : null;
+    return (saved === 'en' || saved === 'ua') ? saved : 'ua';
+  });
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+  const t = translations[lang];
+
+  const handleSelectLang = (newLang: Language) => {
+    setLang(newLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('repairhub_lang', newLang);
+    }
+    setIsLangDropdownOpen(false);
+  };
+
+  const statusWorkflow: { key: OrderStatus; label: string; desc: string }[] = [
+    { key: 'NEW', label: t.stNew, desc: t.stNewDesc },
+    { key: 'IN_DIAGNOSTICS', label: t.stDiag, desc: t.stDiagDesc },
+    { key: 'PENDING_APPROVAL', label: t.stAppr, desc: t.stApprDesc },
+    { key: 'IN_PROGRESS', label: t.stProg, desc: t.stProgDesc },
+    { key: 'READY_FOR_PICKUP', label: t.stReady, desc: t.stReadyDesc },
+    { key: 'COMPLETED', label: t.stComp, desc: t.stCompDesc },
+  ];
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Order[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -99,11 +117,11 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   }, [currentUser]);
 
   const navSections = [
-    ...(currentUser ? [{ id: 'cabinet', label: 'Мій кабінет' }] : []),
-    { id: 'hero', label: 'Головна' },
-    { id: 'services', label: 'Послуги' },
-    { id: 'workflow', label: 'Етапи робіт' },
-    { id: 'about', label: 'Про нас і контакти' }
+    ...(currentUser ? [{ id: 'cabinet', label: t.navCabinet }] : []),
+    { id: 'hero', label: lang === 'ua' ? 'Головна' : 'Home' },
+    { id: 'services', label: t.navServices },
+    { id: 'workflow', label: t.workflowBadge },
+    { id: 'about', label: t.aboutBadge }
   ];
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -251,98 +269,215 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
 
   return (
     <div className="min-h-screen bg-[#090D16] text-[#F8FAFC] flex flex-col font-sans selection:bg-blue-600 selection:text-white">
-      <header className="sticky top-0 z-40 bg-[#0F172A]/90 backdrop-blur-md border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
-                <Wrench className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <span className="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-                  RepairHub <span className="text-[11px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono font-medium">Сервіс</span>
-                </span>
-                <p className="text-[11px] text-slate-400 hidden sm:block">Авторизований сервісний центр техніки</p>
-              </div>
+      {/* Sticky Header with Top Utility Bar + Main Navigation */}
+      <header className="sticky top-0 z-40 bg-[#0B0F19] border-b border-slate-800/80 shadow-md">
+        {/* Top Utility Information Bar */}
+        <div className="bg-[#080B12] text-slate-400 text-xs border-b border-slate-800/60">
+          <div className="w-full px-4 sm:px-8 lg:px-12 h-9 flex items-center justify-between">
+            <div className="flex items-center gap-5 text-[12px] font-normal text-slate-300">
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span>{t.city}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span>{t.workingHours}</span>
+              </span>
             </div>
 
-            <nav className="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+            <div className="flex items-center gap-4 text-[12px]">
+              {/* Telegram circular icon */}
+              <a
+                href="https://t.me/"
+                target="_blank"
+                rel="noreferrer"
+                title="Telegram"
+                className="w-5 h-5 rounded-full bg-[#229ED9] hover:opacity-90 flex items-center justify-center text-white transition shadow-sm"
+              >
+                <Send className="h-2.5 w-2.5 ml-[-1px]" />
+              </a>
+
+              {/* Viber circular icon */}
+              <a
+                href="viber://chat"
+                title="Viber"
+                className="w-5 h-5 rounded-full bg-[#7360F2] hover:opacity-90 flex items-center justify-center text-white transition shadow-sm"
+              >
+                <Phone className="h-2.5 w-2.5" />
+              </a>
+
+              {/* Phone hotline */}
+              <a
+                href="tel:+380443345577"
+                className="font-medium text-slate-200 hover:text-white transition tracking-tight"
+              >
+                +38 (044) 334-55-77
+              </a>
+
+              {/* Interactive Language dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                  className="flex items-center gap-1 text-slate-300 hover:text-white cursor-pointer select-none text-[12px] pl-2 border-l border-slate-800 transition"
+                  title={lang === 'ua' ? 'Змінити мову' : 'Switch language'}
+                >
+                  <span className="font-semibold">{lang.toUpperCase()}</span>
+                  <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${isLangDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isLangDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsLangDropdownOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-1.5 w-36 bg-[#0F172A] border border-slate-700 rounded-xl shadow-2xl z-50 py-1 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectLang('ua')}
+                        className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-800 transition ${lang === 'ua' ? 'text-blue-400 font-semibold bg-blue-500/10' : 'text-slate-300'}`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-sm">🇺🇦</span>
+                          <span>Українська</span>
+                        </span>
+                        {lang === 'ua' && <span className="text-xs font-bold text-blue-400">✓</span>}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectLang('en')}
+                        className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-800 transition ${lang === 'en' ? 'text-blue-400 font-semibold bg-blue-500/10' : 'text-slate-300'}`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-sm">🇬🇧</span>
+                          <span>English</span>
+                        </span>
+                        {lang === 'en' && <span className="text-xs font-bold text-blue-400">✓</span>}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Navigation Bar */}
+        <div className="w-full px-4 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between h-16 sm:h-18 py-2 gap-4">
+            {/* Brand Logo - Gear outline + FixPoint with glowing cyan focal dot on 'i' */}
+            <div
+              className="cursor-pointer select-none shrink-0 group"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <Logo size="lg" />
+            </div>
+
+            {/* Navigation Menu */}
+            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8 text-sm text-slate-300 font-normal">
+              <button
+                onClick={() => scrollToSection('services')}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                {t.navServices}
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection('tracking');
+                  const searchInput = document.querySelector('input[placeholder*="квитанц"], input[placeholder*="TRK"], input[placeholder*="трек"]') as HTMLInputElement | null;
+                  if (searchInput) searchInput.focus();
+                }}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                {t.navStatus}
+              </button>
+              <button
+                onClick={() => scrollToSection('about')}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                {t.navCorporate}
+              </button>
+              <button
+                onClick={() => scrollToSection('workflow')}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                {t.navWarranty}
+              </button>
+              <button
+                onClick={() => scrollToSection('contacts')}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                {t.navContacts}
+              </button>
               {currentUser && (
-                <button onClick={() => scrollToSection('cabinet')} className={`${activeSection === 'cabinet' ? 'text-cyan-400 font-bold' : 'text-slate-300 hover:text-white'} transition-colors`}>
-                  Мій кабінет
+                <button
+                  onClick={() => scrollToSection('cabinet')}
+                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors cursor-pointer"
+                >
+                  {t.navCabinet}
                 </button>
               )}
-              <button onClick={() => scrollToSection('hero')} className={`${activeSection === 'hero' ? 'text-cyan-400 font-bold' : 'text-slate-300 hover:text-white'} transition-colors`}>
-                Головна
-              </button>
-              <button onClick={() => scrollToSection('services')} className={`${activeSection === 'services' ? 'text-cyan-400 font-bold' : 'text-slate-300 hover:text-white'} transition-colors`}>
-                Послуги та ціни
-              </button>
-              <button onClick={() => scrollToSection('workflow')} className={`${activeSection === 'workflow' ? 'text-cyan-400 font-bold' : 'text-slate-300 hover:text-white'} transition-colors`}>
-                Етапи ремонту
-              </button>
-              <button onClick={() => scrollToSection('about')} className={`${activeSection === 'about' ? 'text-cyan-400 font-bold' : 'text-slate-300 hover:text-white'} transition-colors`}>
-                Про нас
-              </button>
             </nav>
 
-            <div className="flex items-center gap-2">
+            {/* Action buttons */}
+            <div className="flex items-center gap-3 shrink-0">
+              {/* "Перевірити статус" outlined pill button */}
+              <button
+                onClick={() => {
+                  scrollToSection('tracking');
+                  const searchInput = document.querySelector('input[placeholder*="квитанц"], input[placeholder*="TRK"], input[placeholder*="трек"]') as HTMLInputElement | null;
+                  if (searchInput) searchInput.focus();
+                }}
+                className="hidden sm:inline-flex items-center justify-center px-5 py-2 rounded-full text-sm font-medium text-slate-200 border border-slate-600 hover:border-slate-300 hover:text-white bg-transparent transition duration-200 cursor-pointer"
+              >
+                {t.btnCheckStatus}
+              </button>
+
+              {/* "Залишити заявку" solid blue pill button */}
+              <button
+                onClick={onOpenCreateModal}
+                className="inline-flex items-center justify-center px-5 py-2 rounded-full text-sm font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition duration-200 shadow-sm active:scale-95 cursor-pointer"
+              >
+                {t.btnSubmitOrder}
+              </button>
+
+              {/* User / Login controls */}
               {currentUser ? (
-                <>
+                <div className="flex items-center gap-1.5 pl-1">
                   <button
                     onClick={onOpenProfile}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition flex items-center gap-1.5"
-                    title="Профіль та безпека"
+                    className="p-2 rounded-full text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                    title={`${t.btnProfile}: ${currentUser.fullName}`}
                   >
-                    <User className="h-3.5 w-3.5 text-cyan-400" />
-                    <span className="max-w-[130px] truncate">{currentUser.fullName}</span>
+                    <User className="h-4 w-4" />
                   </button>
-
-                  <button
-                    onClick={onOpenCreateModal}
-                    className="hidden sm:flex px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20 transition items-center gap-1.5"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Записати на ремонт</span>
-                  </button>
-
                   <button
                     onClick={onLogout}
-                    title="Вийти з облікового запису"
-                    className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-rose-950/40 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/30 transition flex items-center gap-1.5"
+                    title={t.btnLogout}
+                    className="p-2 rounded-full text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition"
                   >
-                    <LogOut className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Вийти</span>
+                    <LogOut className="h-4 w-4" />
                   </button>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="flex items-center gap-1">
                   {onOpenRegister && (
                     <button
                       onClick={onOpenRegister}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5"
+                      className="hidden sm:inline-block px-2.5 py-1 text-xs text-slate-400 hover:text-white transition"
                     >
-                      <User className="h-3.5 w-3.5 text-cyan-400" />
-                      <span>Реєстрація</span>
+                      {t.btnRegister}
                     </button>
                   )}
-
                   <button
                     onClick={onOpenLogin}
-                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5"
+                    className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                    title={t.btnLogin}
                   >
-                    <Lock className="h-3.5 w-3.5" />
-                    <span>Увійти</span>
+                    <Lock className="h-4 w-4" />
                   </button>
-
-                  <button
-                    onClick={onOpenCreateModal}
-                    className="hidden md:flex px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition items-center gap-1.5"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Заявка</span>
-                  </button>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -380,17 +515,17 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Авторизований клієнт</span>
+                    <span>{t.cabinetAuthorized}</span>
                   </span>
                   {currentUser.email && (
                     <span className="text-xs text-slate-400 font-mono">{currentUser.email}</span>
                   )}
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-white">
-                  Вітаємо, {currentUser.fullName}!
+                  {t.cabinetWelcome} {currentUser.fullName}!
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
-                  У вашому особистому кабінеті доступні історія звернень, онлайн-статус ремонту пристроїв та керування захистом облікового запису (2FA).
+                  {t.cabinetDesc}
                 </p>
               </div>
 
@@ -400,14 +535,14 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                   className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 text-xs font-semibold flex items-center gap-2 transition"
                 >
                   <KeyRound className="w-4 h-4 text-amber-400" />
-                  <span>Профіль та безпека (2FA)</span>
+                  <span>{t.cabinetSecBtn}</span>
                 </button>
                 <button
                   onClick={onOpenCreateModal}
                   className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/20 flex items-center gap-2 transition"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Нова заявка на ремонт</span>
+                  <span>{t.cabinetNewOrderBtn}</span>
                 </button>
               </div>
             </div>
@@ -416,23 +551,23 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
               <div className="flex items-center justify-between">
                 <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                   <ClipboardList className="w-4 h-4 text-blue-400" />
-                  <span>Мої заявки на ремонт ({myOrders.length})</span>
+                  <span>{t.cabinetMyOrders} ({myOrders.length})</span>
                 </h3>
               </div>
 
               {myOrders.length === 0 ? (
                 <div className="bg-[#111827]/70 border border-slate-800 rounded-2xl p-8 text-center">
                   <Wrench className="h-8 w-8 text-slate-600 mx-auto mb-2.5" />
-                  <h4 className="text-sm font-semibold text-slate-200">У вас поки немає активних заявок</h4>
+                  <h4 className="text-sm font-semibold text-slate-200">{t.cabinetNoOrdersTitle}</h4>
                   <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                    Оформіть онлайн-запис на діагностику або ремонт, і статус виконання одразу відобразиться у вашому кабінеті.
+                    {t.cabinetNoOrdersDesc}
                   </p>
                   <button
                     onClick={onOpenCreateModal}
                     className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Оформити першу заявку</span>
+                    <span>{t.cabinetFirstOrderBtn}</span>
                   </button>
                 </div>
               ) : (
@@ -457,18 +592,18 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
             </span>
             <ShieldCheck className="h-4 w-4 text-cyan-400" />
-            <span>Офіційна гарантія до 6 місяців • Працюємо онлайн</span>
+            <span>{t.heroBadge}</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight max-w-4xl mx-auto leading-tight">
-            Професійний ремонт техніки з{' '}
+            {t.heroTitle1}
             <span className="animate-rainbow-text inline-block font-black">
-              онлайн-відстеженням
+              {t.heroTitle2}
             </span>
           </h1>
 
           <p className="mt-4 sm:mt-6 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Швидка діагностика за 30 хвилин, оригінальні комплектуючі та прозорі ціни. Перевірте статус вашого ремонту в реальному часі прямо зараз.
+            {t.heroSubtitle}
           </p>
 
           <div id="tracking" className="mt-8 max-w-2xl mx-auto bg-[#111827] p-2.5 sm:p-3 rounded-2xl border border-slate-800 shadow-2xl shadow-cyan-950/25 focus-within:border-cyan-500/60 focus-within:shadow-cyan-500/20 transition-all duration-300">
@@ -479,7 +614,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Введіть номер телефону або трек-код (напр. TRK-A8F91B)..."
+                  placeholder={t.searchPlaceholder}
                   className="w-full pl-10 pr-4 py-2.5 bg-[#090D16] border border-slate-800 rounded-xl text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-colors font-mono"
                 />
               </div>
@@ -489,17 +624,17 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 className="shimmer-btn px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:via-blue-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-cyan-600/25 hover:shadow-cyan-500/40 flex items-center justify-center gap-2 shrink-0 active:scale-95 disabled:opacity-50"
               >
                 <Search className="h-4 w-4" />
-                <span>{isSearching ? 'Пошук...' : 'Перевірити статус'}</span>
+                <span>{isSearching ? t.searchSearching : t.searchBtn}</span>
               </button>
             </form>
             <div className="flex items-center justify-between mt-2.5 px-2 text-[11px] text-slate-500">
-              <span>Підказка: можна ввести код квитанції або номер телефону</span>
+              <span>{t.searchHint}</span>
               <button
                 type="button"
                 onClick={() => setSearchQuery('TRK-A8F91B')}
                 className="text-cyan-400 hover:text-cyan-300 hover:underline font-mono transition-colors"
               >
-                Спробувати: TRK-A8F91B
+                {t.searchTry}
               </button>
             </div>
           </div>
@@ -507,23 +642,23 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mt-12 text-left">
             <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-cyan-500/50 pop-card delay-1">
               <Clock className="h-5 w-5 text-cyan-400 mb-2 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
-              <div className="text-sm font-bold text-white">Від 30 хвилин</div>
-              <div className="text-xs text-slate-400">Експрес-діагностика дефектів</div>
+              <div className="text-sm font-bold text-white">{t.feature1Title}</div>
+              <div className="text-xs text-slate-400">{t.feature1Desc}</div>
             </div>
             <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-sky-500/50 pop-card delay-2">
               <ShieldCheck className="h-5 w-5 text-sky-400 mb-2 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" />
-              <div className="text-sm font-bold text-white">Гарантія 6 міс.</div>
-              <div className="text-xs text-slate-400">Офіційний акт та чек</div>
+              <div className="text-sm font-bold text-white">{t.feature2Title}</div>
+              <div className="text-xs text-slate-400">{t.feature2Desc}</div>
             </div>
             <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-blue-500/50 pop-card delay-3">
               <Wrench className="h-5 w-5 text-blue-400 mb-2 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
-              <div className="text-sm font-bold text-white">Оригінальні деталі</div>
-              <div className="text-xs text-slate-400">Власний склад комплектуючих</div>
+              <div className="text-sm font-bold text-white">{t.feature3Title}</div>
+              <div className="text-xs text-slate-400">{t.feature3Desc}</div>
             </div>
             <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-indigo-500/50 pop-card delay-4">
               <CheckCircle2 className="h-5 w-5 text-indigo-400 mb-2 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" />
-              <div className="text-sm font-bold text-white">Live-трекінг</div>
-              <div className="text-xs text-slate-400">Прозорий статус ремонту</div>
+              <div className="text-sm font-bold text-white">{t.feature4Title}</div>
+              <div className="text-xs text-slate-400">{t.feature4Desc}</div>
             </div>
           </div>
         </div>
@@ -534,10 +669,10 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <span>Результати перевірки статусу</span>
+                <span>{t.resultsTitle}</span>
                 {searchResults && (
                   <span className="text-xs font-normal text-slate-400 font-mono">
-                    (знайдено: {searchResults.length})
+                    ({t.resultsFound} {searchResults.length})
                   </span>
                 )}
               </h2>
@@ -545,16 +680,16 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 onClick={() => { setSearchAttempted(false); setSearchResults(null); setSearchQuery(''); }}
                 className="text-xs text-slate-400 hover:text-white"
               >
-                Очистити
+                {t.resultsClear}
               </button>
             </div>
 
             {searchResults && searchResults.length === 0 ? (
               <div className="bg-[#111827] border border-slate-800 rounded-xl p-8 text-center">
                 <AlertCircle className="h-8 w-8 text-amber-400 mx-auto mb-2" />
-                <h3 className="text-sm font-semibold text-white">Замовлення не знайдено</h3>
+                <h3 className="text-sm font-semibold text-white">{t.notFoundTitle}</h3>
                 <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                  Перевірте правильність введеного трек-коду або номера телефону. Якщо ви щойно здали пристрій, реєстрація триває до 5 хвилин.
+                  {t.notFoundDesc}
                 </p>
               </div>
             ) : (
@@ -571,13 +706,13 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           <div className="text-center max-w-3xl mx-auto mb-12">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-3">
               <Wrench className="h-3.5 w-3.5 text-cyan-400" />
-              <span>Широкий спектр робіт</span>
+              <span>{t.servicesHeaderBadge}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Послуги та орієнтовні ціни
+              {t.servicesTitle}
             </h2>
             <p className="mt-3 text-sm text-slate-400">
-              Проводимо ремонт будь-якої складності: від заміни розбитого скла до складної пайки ланцюгів живлення.
+              {t.servicesDesc}
             </p>
           </div>
 
@@ -587,31 +722,31 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <div className="h-10 w-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   <Laptop className="h-5 w-5 animate-float" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Ремонт ноутбуків</h3>
+                <h3 className="text-base font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">{t.catLaptops}</h3>
                 <ul className="text-xs text-slate-400 space-y-2 mb-6">
                   <li className="flex items-center justify-between">
-                    <span>Чистка + термопаста</span>
-                    <span className="font-semibold text-cyan-300 font-mono">від 600 ₴</span>
+                    <span>{lang === 'ua' ? 'Чистка + термопаста' : 'Cleaning + Thermal Paste'}</span>
+                    <span className="font-semibold text-cyan-300 font-mono">{t.servicesPriceFrom} 600 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Заміна матриці</span>
-                    <span className="font-semibold text-cyan-300 font-mono">від 800 ₴</span>
+                    <span>{lang === 'ua' ? 'Заміна матриці' : 'Display Replacement'}</span>
+                    <span className="font-semibold text-cyan-300 font-mono">{t.servicesPriceFrom} 800 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Ремонт після залиття</span>
-                    <span className="font-semibold text-cyan-300 font-mono">від 950 ₴</span>
+                    <span>{lang === 'ua' ? 'Ремонт після залиття' : 'Liquid Damage Repair'}</span>
+                    <span className="font-semibold text-cyan-300 font-mono">{t.servicesPriceFrom} 950 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Заміна клавіатури</span>
-                    <span className="font-semibold text-cyan-300 font-mono">від 450 ₴</span>
+                    <span>{lang === 'ua' ? 'Заміна клавіатури' : 'Keyboard Replacement'}</span>
+                    <span className="font-semibold text-cyan-300 font-mono">{t.servicesPriceFrom} 450 ₴</span>
                   </li>
                 </ul>
               </div>
               <button
                 onClick={onOpenCreateModal}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-cyan-600 text-white transition-all duration-200 active:scale-95"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-cyan-600 text-white transition-all duration-200 active:scale-95 cursor-pointer"
               >
-                Записатися на ремонт
+                {t.servicesBookBtn}
               </button>
             </div>
 
@@ -620,31 +755,31 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <div className="h-10 w-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   <Smartphone className="h-5 w-5 animate-float-slow" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2 group-hover:text-sky-300 transition-colors">Ремонт смартфонів</h3>
+                <h3 className="text-base font-bold text-white mb-2 group-hover:text-sky-300 transition-colors">{t.catSmartphones}</h3>
                 <ul className="text-xs text-slate-400 space-y-2 mb-6">
                   <li className="flex items-center justify-between">
-                    <span>Заміна дисплея</span>
-                    <span className="font-semibold text-sky-300 font-mono">від 750 ₴</span>
+                    <span>{lang === 'ua' ? 'Заміна дисплея' : 'Screen Replacement'}</span>
+                    <span className="font-semibold text-sky-300 font-mono">{t.servicesPriceFrom} 750 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Заміна акумулятора</span>
-                    <span className="font-semibold text-sky-300 font-mono">від 500 ₴</span>
+                    <span>{lang === 'ua' ? 'Заміна акумулятора' : 'Battery Replacement'}</span>
+                    <span className="font-semibold text-sky-300 font-mono">{t.servicesPriceFrom} 500 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Заміна роз'єму Type-C</span>
-                    <span className="font-semibold text-sky-300 font-mono">від 450 ₴</span>
+                    <span>{lang === 'ua' ? "Заміна роз'єму Type-C" : 'Type-C Port Repair'}</span>
+                    <span className="font-semibold text-sky-300 font-mono">{t.servicesPriceFrom} 450 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Ремонт динаміка / мікрофона</span>
-                    <span className="font-semibold text-sky-300 font-mono">від 350 ₴</span>
+                    <span>{lang === 'ua' ? 'Ремонт динаміка / мікрофона' : 'Speaker / Mic Repair'}</span>
+                    <span className="font-semibold text-sky-300 font-mono">{t.servicesPriceFrom} 350 ₴</span>
                   </li>
                 </ul>
               </div>
               <button
                 onClick={onOpenCreateModal}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-sky-600 text-white transition-all duration-200 active:scale-95"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-sky-600 text-white transition-all duration-200 active:scale-95 cursor-pointer"
               >
-                Записатися на ремонт
+                {t.servicesBookBtn}
               </button>
             </div>
 
@@ -653,31 +788,31 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   <Tablet className="h-5 w-5 animate-float" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">Ремонт планшетів</h3>
+                <h3 className="text-base font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">{t.catTablets}</h3>
                 <ul className="text-xs text-slate-400 space-y-2 mb-6">
                   <li className="flex items-center justify-between">
-                    <span>Заміна сенсорного скла</span>
-                    <span className="font-semibold text-blue-300 font-mono">від 850 ₴</span>
+                    <span>{lang === 'ua' ? 'Заміна сенсорного скла' : 'Touchscreen Glass'}</span>
+                    <span className="font-semibold text-blue-300 font-mono">{t.servicesPriceFrom} 850 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Заміна батареї iPad/Samsung</span>
-                    <span className="font-semibold text-blue-300 font-mono">від 900 ₴</span>
+                    <span>{lang === 'ua' ? 'Заміна батареї iPad/Samsung' : 'iPad/Tablet Battery'}</span>
+                    <span className="font-semibold text-blue-300 font-mono">{t.servicesPriceFrom} 900 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Прошивка / скидання</span>
-                    <span className="font-semibold text-blue-300 font-mono">від 400 ₴</span>
+                    <span>{lang === 'ua' ? 'Прошивка / скидання' : 'Firmware & Reset'}</span>
+                    <span className="font-semibold text-blue-300 font-mono">{t.servicesPriceFrom} 400 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Відновлення плати</span>
-                    <span className="font-semibold text-blue-300 font-mono">від 1100 ₴</span>
+                    <span>{lang === 'ua' ? 'Відновлення плати' : 'Logic Board Repair'}</span>
+                    <span className="font-semibold text-blue-300 font-mono">{t.servicesPriceFrom} 1100 ₴</span>
                   </li>
                 </ul>
               </div>
               <button
                 onClick={onOpenCreateModal}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-blue-600 text-white transition-all duration-200 active:scale-95"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-blue-600 text-white transition-all duration-200 active:scale-95 cursor-pointer"
               >
-                Записатися на ремонт
+                {t.servicesBookBtn}
               </button>
             </div>
 
@@ -686,31 +821,31 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   <Monitor className="h-5 w-5 animate-float-slow" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">ПК та Монітори</h3>
+                <h3 className="text-base font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">{t.catMonitors}</h3>
                 <ul className="text-xs text-slate-400 space-y-2 mb-6">
                   <li className="flex items-center justify-between">
-                    <span>Діагностика материнської плати</span>
-                    <span className="font-semibold text-indigo-300 font-mono">від 400 ₴</span>
+                    <span>{lang === 'ua' ? 'Діагностика материнської плати' : 'Motherboard Diagnostics'}</span>
+                    <span className="font-semibold text-indigo-300 font-mono">{t.servicesPriceFrom} 400 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Ремонт блоку живлення</span>
-                    <span className="font-semibold text-indigo-300 font-mono">від 650 ₴</span>
+                    <span>{lang === 'ua' ? 'Ремонт блоку живлення' : 'Power Supply Repair'}</span>
+                    <span className="font-semibold text-indigo-300 font-mono">{t.servicesPriceFrom} 650 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Складання / апгрейд ПК</span>
-                    <span className="font-semibold text-indigo-300 font-mono">від 800 ₴</span>
+                    <span>{lang === 'ua' ? 'Складання / апгрейд ПК' : 'PC Assembly & Upgrade'}</span>
+                    <span className="font-semibold text-indigo-300 font-mono">{t.servicesPriceFrom} 800 ₴</span>
                   </li>
                   <li className="flex items-center justify-between">
-                    <span>Заміна LED підсвітки</span>
-                    <span className="font-semibold text-indigo-300 font-mono">від 700 ₴</span>
+                    <span>{lang === 'ua' ? 'Заміна LED підсвітки' : 'LED Backlight Replacement'}</span>
+                    <span className="font-semibold text-indigo-300 font-mono">{t.servicesPriceFrom} 700 ₴</span>
                   </li>
                 </ul>
               </div>
               <button
                 onClick={onOpenCreateModal}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-indigo-600 text-white transition-all duration-200 active:scale-95"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-indigo-600 text-white transition-all duration-200 active:scale-95 cursor-pointer"
               >
-                Записатися на ремонт
+                {t.servicesBookBtn}
               </button>
             </div>
           </div>
@@ -722,13 +857,13 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           <div className="text-center max-w-3xl mx-auto mb-10">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-3">
               <ClipboardList className="h-3.5 w-3.5 text-cyan-400" />
-              <span>Прозорий процес обслуговування</span>
+              <span>{t.workflowBadge}</span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              6 етапів виконання робіт
+              {t.workflowTitle}
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-slate-400">
-              Кожна стадія фіксується в базі даних — статус оновлюється в реальному часі.
+              {t.workflowDesc}
             </p>
           </div>
 
@@ -738,9 +873,9 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <span className="text-2xl font-black font-mono text-cyan-500/40 group-hover:text-cyan-400 transition-colors">01</span>
                 <span className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400"><ClipboardList className="h-4 w-4" /></span>
               </div>
-              <h3 className="text-sm font-bold text-white mb-1.5">Прийом та огляд</h3>
+              <h3 className="text-sm font-bold text-white mb-1.5">{t.step1Title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Фіксація зовнішнього стану, виявлених дефектів та видача індивідуального трек-коду квитанції.
+                {t.step1Desc}
               </p>
             </div>
 
@@ -749,9 +884,9 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <span className="text-2xl font-black font-mono text-sky-500/40 group-hover:text-sky-400 transition-colors">02</span>
                 <span className="p-2 rounded-xl bg-sky-500/10 text-sky-400"><Clock className="h-4 w-4" /></span>
               </div>
-              <h3 className="text-sm font-bold text-white mb-1.5">Апаратна діагностика</h3>
+              <h3 className="text-sm font-bold text-white mb-1.5">{t.step2Title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Повний тест мікросхем та ланцюгів живлення за 30 хвилин. Визначення першопричини поломки.
+                {t.step2Desc}
               </p>
             </div>
 
@@ -760,9 +895,9 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <span className="text-2xl font-black font-mono text-blue-500/40 group-hover:text-blue-400 transition-colors">03</span>
                 <span className="p-2 rounded-xl bg-blue-500/10 text-blue-400"><CheckCircle2 className="h-4 w-4" /></span>
               </div>
-              <h3 className="text-sm font-bold text-white mb-1.5">Узгодження вартості</h3>
+              <h3 className="text-sm font-bold text-white mb-1.5">{t.step3Title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Дзвінок або повідомлення клієнту, погодження переліку деталей і вартості без прихованих платежів.
+                {t.step3Desc}
               </p>
             </div>
 
@@ -771,9 +906,9 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <span className="text-2xl font-black font-mono text-indigo-500/40 group-hover:text-indigo-400 transition-colors">04</span>
                 <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400"><Wrench className="h-4 w-4" /></span>
               </div>
-              <h3 className="text-sm font-bold text-white mb-1.5">Професійний ремонт</h3>
+              <h3 className="text-sm font-bold text-white mb-1.5">{t.step4Title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Встановлення оригінальних деталей із власного складу та складна пайка на BGA-станціях.
+                {t.step4Desc}
               </p>
             </div>
 
@@ -782,9 +917,9 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <span className="text-2xl font-black font-mono text-sky-400/40 group-hover:text-sky-300 transition-colors">05</span>
                 <span className="p-2 rounded-xl bg-sky-500/10 text-sky-400"><ShieldCheck className="h-4 w-4" /></span>
               </div>
-              <h3 className="text-sm font-bold text-white mb-1.5">Контроль якості (QC)</h3>
+              <h3 className="text-sm font-bold text-white mb-1.5">{t.step5Title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Стрес-тестування всіх функцій пристрою та перевірка теплових режимів перед видачею клієнту.
+                {t.step5Desc}
               </p>
             </div>
 
@@ -793,9 +928,9 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <span className="text-2xl font-black font-mono text-cyan-500/40 group-hover:text-cyan-400 transition-colors">06</span>
                 <span className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400"><CheckCircle2 className="h-4 w-4" /></span>
               </div>
-              <h3 className="text-sm font-bold text-white mb-1.5">Видача та гарантія</h3>
+              <h3 className="text-sm font-bold text-white mb-1.5">{t.step6Title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                SMS/Viber сповіщення про готовність, видача замінених компонентів та гарантійного талона на 6 місяців.
+                {t.step6Desc}
               </p>
             </div>
           </div>
@@ -807,36 +942,36 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>
               <div className="inline-block text-xs font-bold text-cyan-400 uppercase tracking-wider mb-2">
-                Про сервісний центр
+                {t.aboutBadge}
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
-                Надійний партнер з ремонту цифрової техніки в Києві
+                {t.aboutTitle}
               </h2>
               <p className="mt-4 text-sm text-slate-400 leading-relaxed">
-                RepairHub — це сучасна лабораторія з ремонту електроніки будь-якої складності. Ми оснащені високоточними інфрачервоними BGA-станціями, цифровими мікроскопами та програматорами.
+                {t.aboutP1}
               </p>
               <p className="mt-3 text-sm text-slate-400 leading-relaxed">
-                Кожен пристрій проходить обов'язковий вхідний та вихідний контроль якості. Усі замінені комплектуючі повертаються клієнту разом із гарантійним талоном.
+                {t.aboutP2}
               </p>
 
               <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-800">
                 <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 card-hover pop-card delay-1">
                   <div className="text-2xl font-bold text-white font-mono">8+</div>
-                  <div className="text-xs text-slate-400 mt-1">Років на ринку</div>
+                  <div className="text-xs text-slate-400 mt-1">{t.aboutStatYears}</div>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 card-hover pop-card delay-2">
                   <div className="text-2xl font-bold text-white font-mono">14 200+</div>
-                  <div className="text-xs text-slate-400 mt-1">Відремонтовано</div>
+                  <div className="text-xs text-slate-400 mt-1">{t.aboutStatRepairs}</div>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 card-hover pop-card delay-3">
                   <div className="text-2xl font-bold text-cyan-400 font-mono">98.6%</div>
-                  <div className="text-xs text-slate-400 mt-1">Успішних робіт</div>
+                  <div className="text-xs text-slate-400 mt-1">{t.aboutStatSuccess}</div>
                 </div>
               </div>
             </div>
 
             <div id="contacts" className="bg-[#111827] border border-slate-800 rounded-2xl p-6 sm:p-8 pop-card delay-4">
-              <h3 className="text-base font-bold text-white mb-4">Контактна інформація та графік</h3>
+              <h3 className="text-base font-bold text-white mb-4">{t.contactsTitle}</h3>
 
               <div className="space-y-4 text-xs text-slate-300">
                 <div className="flex items-start gap-3">
@@ -844,8 +979,8 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                     <MapPin className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="font-semibold text-white block">Адреса сервісного центру:</span>
-                    <span className="text-slate-400">м. Київ, вул. Хрещатик, 22 (біля ст. м. Майдан Незалежності)</span>
+                    <span className="font-semibold text-white block">{t.contactAddressLabel}</span>
+                    <span className="text-slate-400">{t.fullAddress}</span>
                   </div>
                 </div>
 
@@ -854,7 +989,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                     <Phone className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="font-semibold text-white block">Гаряча лінія приймання:</span>
+                    <span className="font-semibold text-white block">{t.contactHotlineLabel}</span>
                     <span className="text-slate-400 font-mono">+38 (044) 333-22-11 • +38 (067) 123-45-67</span>
                   </div>
                 </div>
@@ -864,19 +999,19 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                     <Calendar className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="font-semibold text-white block">Графік роботи:</span>
-                    <span className="text-slate-400">Пн–Пт: 09:00 – 20:00 • Сб–Нд: 10:00 – 18:00 (без перерви)</span>
+                    <span className="font-semibold text-white block">{t.contactHoursLabel}</span>
+                    <span className="text-slate-400">{t.fullWorkingHours}</span>
                   </div>
                 </div>
               </div>
 
               <div className="mt-6 pt-5 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-400">Потрібна швидка консультація?</span>
+                <span className="text-xs text-slate-400">{t.contactCtaText}</span>
                 <button
                   onClick={onOpenCreateModal}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>Подати заявку</span>
+                  <span>{t.contactCtaBtn}</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -887,24 +1022,23 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         <footer className="border-t border-slate-800 bg-[#090D16] py-6 text-xs text-slate-500 w-full shrink-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow shadow-cyan-500/25">
-                <Wrench className="h-3.5 w-3.5 text-white" />
-              </div>
-              <span className="text-slate-300 font-semibold">RepairHub Service Center</span>
-              <span>© 2026 Всі права захищено</span>
+              <Logo size="sm" />
+              <span className="text-slate-400 text-[11px]">Service Center</span>
+              <span className="text-slate-700">•</span>
+              <span>© 2026 {t.footerRights}</span>
             </div>
 
             <div className="flex items-center gap-4">
               {onOpenSupport && (
-                <button onClick={onOpenSupport} className="text-slate-400 hover:text-cyan-300 flex items-center gap-1.5 transition-colors">
+                <button onClick={onOpenSupport} className="text-slate-400 hover:text-cyan-300 flex items-center gap-1.5 transition-colors cursor-pointer">
                   <LifeBuoy className="h-3 w-3 text-cyan-400" />
-                  <span>Служба підтримки</span>
+                  <span>{t.footerSupport}</span>
                 </button>
               )}
               {!currentUser && (
-                <button onClick={onOpenLogin} className="text-slate-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
+                <button onClick={onOpenLogin} className="text-slate-400 hover:text-cyan-300 flex items-center gap-1 transition-colors cursor-pointer">
                   <Lock className="h-3 w-3 text-cyan-400" />
-                  <span>Вхід для персоналу</span>
+                  <span>{t.footerStaffLogin}</span>
                 </button>
               )}
             </div>

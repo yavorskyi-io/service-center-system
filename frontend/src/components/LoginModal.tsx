@@ -116,7 +116,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">Вхід до облікового запису</h3>
-              <p className="text-[11px] text-slate-400">Захищена автентифікація сервісного центру RepairHub</p>
+              <p className="text-[11px] text-slate-400">Захищена автентифікація сервісного центру FixPoint</p>
             </div>
           </div>
           <button

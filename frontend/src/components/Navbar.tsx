@@ -1,6 +1,7 @@
 import React from 'react';
 import { Wrench, Package, Search, Plus, Laptop, ShieldCheck, UserCheck, LogOut, Users, Shield, ShieldAlert, User } from 'lucide-react';
 import type { AuthUser } from '../types';
+import { Logo } from './Logo';
 
 interface NavbarProps {
   activeTab: 'orders' | 'warehouse' | 'tracking' | 'clients' | 'staff' | 'security';
@@ -59,16 +60,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2">
           <div className="flex items-center gap-2.5 shrink-0">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('orders')}>
-              <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
-                <Wrench className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
-                RepairHub{' '}
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">
-                  CRM
-                </span>
-              </span>
+            <div className="flex items-center gap-2 cursor-pointer group" onClick={() => setActiveTab('orders')}>
+              <Logo size="md" showBadge badgeText="CRM" />
             </div>
           </div>
 

@@ -120,6 +120,9 @@ public class CaptchaService {
                 return response.body().contains("\"success\":true")
                         || response.body().contains("\"success\": true");
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Cloudflare Turnstile verification interrupted: {}", e.getMessage());
         } catch (Exception e) {
             log.warn("Cloudflare Turnstile verification check failed: {}", e.getMessage());
             // In local development with dummy secret key, allow verification if network is unavailable

@@ -164,7 +164,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-white">Створення облікового запису</h2>
-            <p className="text-xs text-slate-400">Особистий кабінет клієнта сервісного центру RepairHub</p>
+            <p className="text-xs text-slate-400">Особистий кабінет клієнта сервісного центру FixPoint</p>
           </div>
         </div>
 
