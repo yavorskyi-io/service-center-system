@@ -17,9 +17,10 @@ import type {
   CaptchaData
 } from '../types';
 
-const API_BASE_URL = typeof window !== 'undefined' && window.location.port === '3000'
-  ? '/api/v1'
-  : 'http://localhost:8080/api/v1';
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string) ||
+  (typeof window !== 'undefined' && (window.location.port === '3000' || window.location.hostname !== 'localhost')
+    ? '/api/v1'
+    : 'http://localhost:8080/api/v1');
 
 let authToken: string | null = typeof window !== 'undefined' ? localStorage.getItem('repairhub_token') : null;
 
