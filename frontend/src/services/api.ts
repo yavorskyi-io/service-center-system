@@ -102,6 +102,71 @@ function recalculateMockOrderTotal(order: Order): void {
 
 let mockOrders: Order[] = [
   {
+    id: 11,
+    orderNumber: 'SRV-2026-0001',
+    trackingCode: 'TRK-2026-001',
+    client: {
+      id: 1,
+      fullName: 'Іван Сидоренко',
+      phone: '+380671234567',
+      email: 'ivan.sydor@gmail.com',
+      notes: 'Постійний клієнт, знижка 5%'
+    },
+    device: {
+      id: 2,
+      deviceType: 'Смартфон',
+      brand: 'Apple',
+      model: 'iPhone 13 Pro',
+      imei: '356987123456789',
+      appearanceNotes: 'Тріщина на склі дисплея, камери цілі',
+      specs: { color: 'Graphite', storage: '256GB' }
+    },
+    technicianId: 3,
+    technicianName: 'Тарас Бондаренко',
+    status: 'IN_PROGRESS',
+    priority: 'HIGH',
+    defectDescription: 'Розбитий екран, не реагує тачскрін після падіння',
+    diagnosticsNotes: 'Проведено апаратну діагностику. Необхідна заміна оригінального дисплейного модуля OLED.',
+    estimatedCost: 4500,
+    totalCost: 4500,
+    createdAt: '2026-11-18 10:30',
+    parts: [
+      { id: 1, sparePartId: 2, sku: 'DISP-IPH13P-OEM', partName: 'Дисплейний модуль iPhone 13 Pro (OEM)', quantity: 1, unitPrice: 3800 }
+    ],
+    services: [
+      { id: 1, serviceId: 2, serviceName: 'Заміна дисплейного модуля смартфона', price: 700 }
+    ]
+  },
+  {
+    id: 12,
+    orderNumber: 'SRV-2026-0005',
+    trackingCode: 'TRK-2026-002',
+    client: {
+      id: 1,
+      fullName: 'Іван Сидоренко',
+      phone: '+380671234567',
+      email: 'ivan.sydor@gmail.com'
+    },
+    device: {
+      id: 4,
+      deviceType: 'Ноутбук',
+      brand: 'Lenovo',
+      model: 'ThinkPad X1 Carbon',
+      specs: { cpu: 'Intel Core i7', ram: '16GB', ssd: '512GB' }
+    },
+    technicianId: 3,
+    technicianName: 'Тарас Бондаренко',
+    status: 'IN_DIAGNOSTICS',
+    priority: 'MEDIUM',
+    defectDescription: 'Швидко розряджається батарея, вимикається на 20%',
+    diagnosticsNotes: 'Виконується тестування ємності акумулятора та перевірка ланцюгів живлення на витік струму.',
+    estimatedCost: 1800,
+    totalCost: 1800,
+    createdAt: '2026-11-18 11:15',
+    parts: [],
+    services: []
+  },
+  {
     id: 1,
     orderNumber: 'SRV-2026-0001',
     trackingCode: 'TRK-A8F91B',
