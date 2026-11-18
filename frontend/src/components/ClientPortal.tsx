@@ -580,7 +580,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         </section>
       )}
 
-      <section id="hero" className="fullpage-section flex flex-col justify-center py-14 relative overflow-hidden border-b border-slate-800/60 bg-gradient-to-b from-[#0F172A]/40 to-transparent">
+      <section id="hero" className={`fullpage-section flex flex-col justify-center py-14 relative ${searchAttempted ? 'overflow-y-auto min-h-screen h-auto py-20' : 'overflow-hidden'} border-b border-slate-800/60 bg-gradient-to-b from-[#0F172A]/40 to-transparent`}>
         {/* Animated ambient background orbs */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[400px] bg-gradient-to-tr from-cyan-500/20 via-blue-600/20 to-indigo-600/20 rounded-full blur-[120px] pointer-events-none animate-pulse-glow -z-0" />
         <div className="absolute top-1/3 left-1/4 w-[340px] h-[340px] bg-sky-400/15 rounded-full blur-[90px] pointer-events-none animate-pulse-glow-delayed -z-0" />
@@ -639,67 +639,68 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mt-12 text-left">
-            <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-cyan-500/50 pop-card delay-1">
-              <Clock className="h-5 w-5 text-cyan-400 mb-2 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
-              <div className="text-sm font-bold text-white">{t.feature1Title}</div>
-              <div className="text-xs text-slate-400">{t.feature1Desc}</div>
+          {searchAttempted && (
+            <div id="search-results-box" className="mt-8 max-w-4xl mx-auto w-full animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between mb-4 px-2">
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>{t.resultsTitle}</span>
+                  {searchResults && (
+                    <span className="text-xs font-normal text-cyan-400 font-mono">
+                      ({t.resultsFound} {searchResults.length})
+                    </span>
+                  )}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => { setSearchAttempted(false); setSearchResults(null); setSearchQuery(''); }}
+                  className="text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 transition-colors"
+                >
+                  {t.resultsClear} ✕
+                </button>
+              </div>
+
+              {searchResults && searchResults.length === 0 ? (
+                <div className="bg-[#111827] border border-slate-800 rounded-2xl p-8 text-center shadow-xl">
+                  <AlertCircle className="h-8 w-8 text-amber-400 mx-auto mb-2" />
+                  <h3 className="text-sm font-semibold text-white">{t.notFoundTitle}</h3>
+                  <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                    {t.notFoundDesc}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {searchResults?.map(renderOrderTrackingCard)}
+                </div>
+              )}
             </div>
-            <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-sky-500/50 pop-card delay-2">
-              <ShieldCheck className="h-5 w-5 text-sky-400 mb-2 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" />
-              <div className="text-sm font-bold text-white">{t.feature2Title}</div>
-              <div className="text-xs text-slate-400">{t.feature2Desc}</div>
+          )}
+
+          {!searchAttempted && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mt-12 text-left">
+              <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-cyan-500/50 pop-card delay-1">
+                <Clock className="h-5 w-5 text-cyan-400 mb-2 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
+                <div className="text-sm font-bold text-white">{t.feature1Title}</div>
+                <div className="text-xs text-slate-400">{t.feature1Desc}</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-sky-500/50 pop-card delay-2">
+                <ShieldCheck className="h-5 w-5 text-sky-400 mb-2 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" />
+                <div className="text-sm font-bold text-white">{t.feature2Title}</div>
+                <div className="text-xs text-slate-400">{t.feature2Desc}</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-blue-500/50 pop-card delay-3">
+                <Wrench className="h-5 w-5 text-blue-400 mb-2 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
+                <div className="text-sm font-bold text-white">{t.feature3Title}</div>
+                <div className="text-xs text-slate-400">{t.feature3Desc}</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-indigo-500/50 pop-card delay-4">
+                <CheckCircle2 className="h-5 w-5 text-indigo-400 mb-2 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" />
+                <div className="text-sm font-bold text-white">{t.feature4Title}</div>
+                <div className="text-xs text-slate-400">{t.feature4Desc}</div>
+              </div>
             </div>
-            <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-blue-500/50 pop-card delay-3">
-              <Wrench className="h-5 w-5 text-blue-400 mb-2 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
-              <div className="text-sm font-bold text-white">{t.feature3Title}</div>
-              <div className="text-xs text-slate-400">{t.feature3Desc}</div>
-            </div>
-            <div className="p-3.5 rounded-xl bg-[#111827]/80 border border-slate-800 card-hover group cursor-default hover:border-indigo-500/50 pop-card delay-4">
-              <CheckCircle2 className="h-5 w-5 text-indigo-400 mb-2 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" />
-              <div className="text-sm font-bold text-white">{t.feature4Title}</div>
-              <div className="text-xs text-slate-400">{t.feature4Desc}</div>
-            </div>
-          </div>
+          )}
         </div>
       </section>
-
-      {searchAttempted && (
-        <section className="py-10 bg-[#0F172A]/50 border-b border-slate-800 animate-in fade-in duration-200">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <span>{t.resultsTitle}</span>
-                {searchResults && (
-                  <span className="text-xs font-normal text-slate-400 font-mono">
-                    ({t.resultsFound} {searchResults.length})
-                  </span>
-                )}
-              </h2>
-              <button
-                onClick={() => { setSearchAttempted(false); setSearchResults(null); setSearchQuery(''); }}
-                className="text-xs text-slate-400 hover:text-white"
-              >
-                {t.resultsClear}
-              </button>
-            </div>
-
-            {searchResults && searchResults.length === 0 ? (
-              <div className="bg-[#111827] border border-slate-800 rounded-xl p-8 text-center">
-                <AlertCircle className="h-8 w-8 text-amber-400 mx-auto mb-2" />
-                <h3 className="text-sm font-semibold text-white">{t.notFoundTitle}</h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                  {t.notFoundDesc}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {searchResults?.map(renderOrderTrackingCard)}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
 
       <section id="services" className="fullpage-section flex flex-col justify-center py-14 relative overflow-hidden border-b border-slate-800/80">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full section-reveal ${visibleSections['services'] ? 'active' : ''}`}>
